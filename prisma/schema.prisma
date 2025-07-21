@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  username      String     @unique
+  email         String     @unique
+  password_hash String
+  role          String     // contoh: 'admin', 'customer'
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  customers     Customer[] // relasi opsional, bisa kosong
+}
+
+model Category {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String     @unique
+  description String?    // nullable
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+
+  products    Product[]
+}
+
+model Product {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  price       Float   
+  stock       Int
+  image_url   String?
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+
+  category    Category   @relation(fields: [category_id], references: [id])
+  category_id String     @db.ObjectId
+
+  order_items OrderItem[]
+}
+
+model Customer {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  user_id       String?    @db.ObjectId
+  first_name    String
+  last_name     String?
+  email         String     @unique
+  phone_number  String?
+  address       String?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  user          User?      @relation(fields: [user_id], references: [id])
+  orders        Order[]
+}
+
+model Order {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  customer_id  String     @db.ObjectId
+  order_date   DateTime   @default(now())
+  total_amount Float    
+  status       String     // contoh: 'pending', 'processing', dst
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+
+  customer     Customer   @relation(fields: [customer_id], references: [id])
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  order_id       String     @db.ObjectId
+  product_id     String     @db.ObjectId
+  quantity       Int
+  price_at_order Float    
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt
+
+  order          Order      @relation(fields: [order_id], references: [id])
+  product        Product    @relation(fields: [product_id], references: [id])
+}
+
