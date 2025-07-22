@@ -16,7 +16,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     }
 
     return NextResponse.json(category);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Gagal ambil data" }, { status: 500 });
   }
 }
